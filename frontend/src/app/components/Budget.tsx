@@ -1,16 +1,16 @@
 import { useState } from 'react';
-import { UtensilsCrossed, Car, Sparkles, Home, ShoppingBag, Heart, GraduationCap, Coffee } from 'lucide-react';
+import { ShoppingCart, Car, Home, Film, Heart, GraduationCap, ShoppingBag, Wallet } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 const categories = [
-  { id: 'food', name: 'Comida', icon: UtensilsCrossed, color: 'bg-orange-100 text-orange-600' },
+  { id: 'food', name: 'Alimentación', icon: ShoppingCart, color: 'bg-orange-100 text-orange-600' },
   { id: 'transport', name: 'Transporte', icon: Car, color: 'bg-blue-100 text-blue-600' },
-  { id: 'leisure', name: 'Ocio', icon: Sparkles, color: 'bg-purple-100 text-purple-600' },
-  { id: 'home', name: 'Hogar', icon: Home, color: 'bg-green-100 text-green-600' },
-  { id: 'shopping', name: 'Compras', icon: ShoppingBag, color: 'bg-pink-100 text-pink-600' },
+  { id: 'housing', name: 'Vivienda', icon: Home, color: 'bg-purple-100 text-purple-600' },
+  { id: 'entertainment', name: 'Entretenimiento', icon: Film, color: 'bg-pink-100 text-pink-600' },
   { id: 'health', name: 'Salud', icon: Heart, color: 'bg-red-100 text-red-600' },
-  { id: 'education', name: 'Educación', icon: GraduationCap, color: 'bg-indigo-100 text-indigo-600' },
-  { id: 'other', name: 'Otros', icon: Coffee, color: 'bg-yellow-100 text-yellow-600' },
+  { id: 'education', name: 'Educación', icon: GraduationCap, color: 'bg-green-100 text-green-600' },
+  { id: 'shopping', name: 'Compras', icon: ShoppingBag, color: 'bg-yellow-100 text-yellow-600' },
+  { id: 'other', name: 'Otros', icon: Wallet, color: 'bg-slate-100 text-slate-600' },
 ];
 
 const months = [
@@ -23,7 +23,7 @@ interface BudgetProps {
 }
 
 export function Budget({ onBack }: BudgetProps) {
-  const { user, token } = useAuth();
+  const { user } = useAuth();
   const currentMonth = new Date().getMonth();
   const [selectedMonth, setSelectedMonth] = useState(currentMonth);
   const [selectedCategory, setSelectedCategory] = useState('');
@@ -66,28 +66,7 @@ export function Budget({ onBack }: BudgetProps) {
       setSavedCategoryName(categoryName);
       setSavedAmount(amount);
 
-      const rawNumber = amount.replace(/\./g, '');
-      const numericAmount = parseFloat(rawNumber || '0');
-      const API_URL = import.meta.env.VITE_API_URL ?? '';
-      (async () => {
-        try {
-          const res = await fetch(`${API_URL}/api/budgets`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(token ? { Authorization: `Bearer ${token}` } : {})
-            },
-            body: JSON.stringify({ name: categoryName, limitAmount: numericAmount })
-          });
-          if (!res.ok) {
-            // handle validation error or show message — for now, fallback to local save
-          }
-        } catch (err) {
-          // network error: fallback to local save
-        }
-      })();
-
-      // Fallback local save for UX continuity
+      // Save budget to localStorage
       const newBudget = {
         id: Math.random().toString(36).substr(2, 9),
         categoryId: selectedCategory,

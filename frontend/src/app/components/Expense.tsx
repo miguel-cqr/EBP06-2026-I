@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DollarSign, Briefcase, TrendingUp, Gift, PiggyBank, RotateCcw, HelpCircle, Wallet, CalendarIcon } from 'lucide-react';
+import { ShoppingCart, Car, Home, Film, Heart, GraduationCap, ShoppingBag, Wallet, CalendarIcon } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
@@ -7,21 +7,21 @@ import { Calendar } from "./ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 const categories = [
-  { id: 'salary', name: 'Salario', icon: Briefcase, color: 'bg-blue-100 text-blue-600' },
-  { id: 'freelance', name: 'Freelance', icon: DollarSign, color: 'bg-purple-100 text-purple-600' },
-  { id: 'investment', name: 'Inversión', icon: TrendingUp, color: 'bg-green-100 text-green-600' },
-  { id: 'bonus', name: 'Bono', icon: Gift, color: 'bg-yellow-100 text-yellow-600' },
-  { id: 'gift', name: 'Regalo', icon: Gift, color: 'bg-pink-100 text-pink-600' },
-  { id: 'savings', name: 'Ahorro', icon: PiggyBank, color: 'bg-indigo-100 text-indigo-600' },
-  { id: 'refund', name: 'Reembolso', icon: RotateCcw, color: 'bg-teal-100 text-teal-600' },
-  { id: 'other', name: 'Otro', icon: Wallet, color: 'bg-slate-100 text-slate-600' },
+  { id: 'food', name: 'Alimentación', icon: ShoppingCart, color: 'bg-orange-100 text-orange-600' },
+  { id: 'transport', name: 'Transporte', icon: Car, color: 'bg-blue-100 text-blue-600' },
+  { id: 'housing', name: 'Vivienda', icon: Home, color: 'bg-purple-100 text-purple-600' },
+  { id: 'entertainment', name: 'Entretenimiento', icon: Film, color: 'bg-pink-100 text-pink-600' },
+  { id: 'health', name: 'Salud', icon: Heart, color: 'bg-red-100 text-red-600' },
+  { id: 'education', name: 'Educación', icon: GraduationCap, color: 'bg-green-100 text-green-600' },
+  { id: 'shopping', name: 'Compras', icon: ShoppingBag, color: 'bg-yellow-100 text-yellow-600' },
+  { id: 'other', name: 'Otros', icon: Wallet, color: 'bg-slate-100 text-slate-600' },
 ];
 
-interface IncomeProps {
+interface ExpenseProps {
   onBack: () => void;
 }
 
-export function Income({ onBack }: IncomeProps) {
+export function Expense({ onBack }: ExpenseProps) {
   const { user } = useAuth();
   const today = new Date();
 
@@ -73,8 +73,8 @@ export function Income({ onBack }: IncomeProps) {
       setSavedCategoryName(categoryName);
       setSavedAmount(amount);
 
-      // Save income to localStorage
-      const newIncome = {
+      // Save expense to localStorage
+      const newExpense = {
         id: Math.random().toString(36).substr(2, 9),
         date: date ? format(date, 'yyyy-MM-dd') : '',
         createdAt: new Date().toISOString(),
@@ -85,9 +85,9 @@ export function Income({ onBack }: IncomeProps) {
         userId: user?.id || ''
       };
 
-      const existingIncomes = JSON.parse(localStorage.getItem('incomes') || '[]');
-      existingIncomes.push(newIncome);
-      localStorage.setItem('incomes', JSON.stringify(existingIncomes));
+      const existingExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+      existingExpenses.push(newExpense);
+      localStorage.setItem('expenses', JSON.stringify(existingExpenses));
 
       setShowToast(true);
 
@@ -110,8 +110,8 @@ export function Income({ onBack }: IncomeProps) {
       <div className="w-full max-w-md lg:max-w-2xl">
         {/* Header */}
         <div className="mb-6 md:mb-8">
-          <h1 className="text-[#3D2C8D] mb-1">Registrar ingreso</h1>
-          <p className="text-[#7B6FA0] text-sm md:text-base">Mantén constancia de todos tus ingresos mensuales</p>
+          <h1 className="text-[#3D2C8D] mb-1">Registrar gasto</h1>
+          <p className="text-[#7B6FA0] text-sm md:text-base">Mantén control de todos tus gastos mensuales</p>
         </div>
 
         {/* Form Card */}
@@ -205,7 +205,7 @@ export function Income({ onBack }: IncomeProps) {
           {/* Description Input */}
           <div className="space-y-2">
             <label htmlFor="description" className="block text-[#3D2C8D]">
-              Descripción del ingreso <span className="text-slate-400 text-sm">(opcional)</span>
+              Descripción del gasto <span className="text-slate-400 text-sm">(opcional)</span>
             </label>
             <input
               id="description"
@@ -219,7 +219,7 @@ export function Income({ onBack }: IncomeProps) {
               }}
               onFocus={() => setFocusedInput('description')}
               onBlur={() => setFocusedInput('')}
-              placeholder="Ej: Pago mensual de proyecto..."
+              placeholder="Ej: Compra de supermercado…"
               className={`w-full px-4 py-3 md:py-3.5 bg-slate-50 border rounded-xl transition-all focus:outline-none focus:ring-2 focus:ring-primary/20 min-h-[44px] ${
                 errors.description
                   ? 'border-red-300 bg-red-50/50 focus:border-red-400'
@@ -239,7 +239,7 @@ export function Income({ onBack }: IncomeProps) {
           {/* Amount Input */}
           <div className="space-y-2">
             <label htmlFor="amount" className="block text-[#3D2C8D]">
-              Monto del ingreso
+              Monto del gasto
             </label>
             <div className="relative">
               <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none text-base md:text-lg">
@@ -281,7 +281,7 @@ export function Income({ onBack }: IncomeProps) {
               </div>
               <div className="flex-1">
                 <p className="text-sm md:text-base text-blue-900">
-                  El ingreso quedará almacenado en tu historial financiero
+                  El gasto quedará almacenado en tu historial financiero
                 </p>
               </div>
             </div>
@@ -294,7 +294,7 @@ export function Income({ onBack }: IncomeProps) {
             onClick={handleSave}
             className="w-full md:flex-1 bg-[#0D0D0D] text-white border-2 border-[#3D2C8D] min-h-[44px] py-3 md:py-4 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all"
           >
-            Guardar ingreso
+            Guardar gasto
           </button>
           <button
             onClick={onBack}
@@ -335,7 +335,7 @@ export function Income({ onBack }: IncomeProps) {
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-slate-900 font-medium">¡Ingreso guardado!</p>
+                <p className="text-slate-900 font-medium">¡Gasto guardado!</p>
                 <p className="text-sm text-slate-500 mt-0.5">
                   {savedCategoryName} - ${savedAmount}
                 </p>
