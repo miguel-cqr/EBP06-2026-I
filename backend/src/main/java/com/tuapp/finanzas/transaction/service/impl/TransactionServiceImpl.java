@@ -59,12 +59,28 @@ public class TransactionServiceImpl implements TransactionService {
         t.setType(TransactionType.INCOME);
         return toDto(transactionRepository.save(t));
     }
-    
+
     @Override
     public TransactionDto createExpense(TransactionDto dto) {
         Transaction t = buildTransaction(dto);
         t.setType(TransactionType.EXPENSE);
-        return toDto(transactionRepository.save(t));
+
+        Transaction saved = transactionRepository.save(t);
+
+        // nuevo: evaluar presupuesto
+        if (saved.getUser() != null && saved.getCategory() != null) {
+
+            var date = saved.getDate();
+
+            alertService.evaluateBudget(
+                    saved.getUser().getId(),
+                    saved.getCategory().getId(),
+                    date.getYear(),
+                    date.getMonthValue()
+            );
+        }
+
+        return toDto(saved);
     }
 
     @Override
@@ -103,5 +119,17 @@ public class TransactionServiceImpl implements TransactionService {
         );
         dto.setDate(t.getDate());
         return dto;
+    }
+
+    private final AlertService alertService;
+
+    public TransactionServiceImpl(
+            TransactionRepository transactionRepository,
+            UserLookup userLookup,
+            AlertService alertService
+    ) {
+        this.transactionRepository = transactionRepository;
+        this.userLookup = userLookup;
+        this.alertService = alertService;
     }
 }

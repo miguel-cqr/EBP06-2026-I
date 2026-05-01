@@ -19,6 +19,10 @@ public class BudgetDto {
     @DecimalMin(value = "0.01", message = "limitAmount must be greater than zero")
     private BigDecimal limitAmount;
 
+    private Integer month;
+    private Integer year;
+    private Long categoryId;
+
     public BudgetDto() {}
 
     public BudgetDto(Long id, String name, BigDecimal limitAmount) {

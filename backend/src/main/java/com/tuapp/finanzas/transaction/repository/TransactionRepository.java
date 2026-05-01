@@ -9,10 +9,46 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
+
     @Query("""
     SELECT COALESCE(SUM(t.amount), 0)
     FROM Transaction t
-    WHERE t.type = :type AND t.user.id = :userId
+    WHERE t.user.id = :userId
+    AND t.category.id = :categoryId
+    AND t.type = 'EXPENSE'
+    AND YEAR(t.date) = :year
+    AND MONTH(t.date) = :month
     """)
-    Double sumByTypeAndUser(TransactionType type, Long userId);
+    BigDecimal sumExpensesByCategory(
+            @Param("userId") Long userId,
+            @Param("categoryId") Long categoryId,
+            @Param("year") int year,
+            @Param("month") int month
+    );
+
+
+    @Query("""
+    SELECT 
+        COALESCE(SUM(CASE WHEN t.type = 'INCOME' THEN t.amount END), 0),
+        COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount END), 0)
+    FROM Transaction t
+    WHERE t.user.id = :userId
+    AND YEAR(t.date) = :year
+    AND MONTH(t.date) = :month
+    """)
+    Object[] getMonthlyBalance(Long userId, int year, int month);
+
+
+    @Query("""
+    SELECT 
+        MONTH(t.date),
+        SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END),
+        SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END)
+    FROM Transaction t
+    WHERE t.user.id = :userId
+    AND YEAR(t.date) = :year
+    GROUP BY MONTH(t.date)
+    ORDER BY MONTH(t.date)
+    """)
+    List<Object[]> getYearlyBalance(Long userId, int year);
 }

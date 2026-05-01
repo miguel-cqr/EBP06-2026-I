@@ -56,5 +56,4 @@ services:
       - backend
 
 volumes:
-  postgres_data:
   ebp06_data:
