@@ -36,51 +36,24 @@ interface Income {
 }
 
 interface IncomesScreenProps {
-  onNavigate: (page: 'home' | 'budgets' | 'incomes') => void;
+  onNavigate: (page: 'home' | 'budgets' | 'incomes' | 'expenses') => void;
   onCreateIncome: () => void;
+  onProfileClick: () => void;
 }
 
-export function IncomesScreen({ onNavigate, onCreateIncome }: IncomesScreenProps) {
-  const { user, token } = useAuth();
+export function IncomesScreen({ onNavigate, onCreateIncome, onProfileClick }: IncomesScreenProps) {
+  const { user } = useAuth();
   const [incomes, setIncomes] = useState<Income[]>([]);
 
   useEffect(() => {
-    const load = async () => {
-      if (!user) return setIncomes([]);
-      const API_URL = import.meta.env.VITE_API_URL ?? '';
-      try {
-        const res = await fetch(`${API_URL}/api/transactions`, {
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {})
-          }
-        });
-        if (!res.ok) throw new Error('Failed to fetch');
-        const data = await res.json();
-        // Filter by current user
-        const userIncomes = (data || []).filter((t: any) => String(t.userId) === String(user.id));
-        // Map to UI shape and sort by date desc
-        const mapped = userIncomes.map((t: any) => ({
-          id: String(t.id),
-          date: t.date || new Date().toISOString().slice(0,10),
-          categoryId: t.categoryId ? String(t.categoryId) : 'other',
-          categoryName: t.categoryName || 'Otros',
-          description: t.description || '',
-          amount: t.amount ? String(t.amount) : '0',
-          userId: String(t.userId || '')
-        }));
-        mapped.sort((a: Income, b: Income) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setIncomes(mapped);
-      } catch (err) {
-        // Fallback to localStorage
-        const allIncomes = JSON.parse(localStorage.getItem('incomes') || '[]');
-        const userIncomes = allIncomes.filter((i: Income) => String(i.userId) === String(user.id));
-        userIncomes.sort((a: Income, b: Income) => new Date(b.date).getTime() - new Date(a.date).getTime());
-        setIncomes(userIncomes);
-      }
-    };
-    load();
-  }, [user, token]);
+    if (user) {
+      const allIncomes = JSON.parse(localStorage.getItem('incomes') || '[]');
+      const userIncomes = allIncomes.filter((i: Income) => i.userId === user.id);
+      // Sort by date descending
+      userIncomes.sort((a: Income, b: Income) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      setIncomes(userIncomes);
+    }
+  }, [user]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -91,12 +64,12 @@ export function IncomesScreen({ onNavigate, onCreateIncome }: IncomesScreenProps
   };
 
   return (
-    <SidebarLayout currentPage="incomes" onNavigate={onNavigate}>
+    <SidebarLayout currentPage="incomes" onNavigate={onNavigate} onProfileClick={onProfileClick}>
       <div className="flex-1 p-4 pt-8 md:p-6 xl:p-8 pb-24 xl:pb-8 bg-[#F7F5F0]">
         <div className="w-full max-w-md md:max-w-3xl xl:max-w-5xl mx-auto">
           {/* Header */}
           <div className="flex items-center justify-between mb-8">
-            <h1 className="text-[#3D2C8D]">Ingresos</h1>
+            <h1 className="text-[#3D2C8D] text-[30px]">Ingresos</h1>
             <button
               onClick={onCreateIncome}
               className="bg-primary text-primary-foreground px-4 md:px-6 py-3 rounded-xl shadow-sm hover:shadow-md active:scale-[0.98] transition-all flex items-center gap-2 min-h-[44px]"
@@ -142,6 +115,9 @@ export function IncomesScreen({ onNavigate, onCreateIncome }: IncomesScreenProps
                       <div className="flex-1 min-w-0">
                         <p className="text-slate-900 font-medium truncate">{income.categoryName}</p>
                         <p className="text-sm text-slate-500">{formatDate(income.date)}</p>
+                        {income.description && (
+                          <p className="text-xs text-slate-400 mt-1 line-clamp-2">{income.description}</p>
+                        )}
                       </div>
                     </div>
 

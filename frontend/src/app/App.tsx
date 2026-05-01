@@ -1,15 +1,19 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { NotificationProvider } from './contexts/NotificationContext';
 import { Onboarding } from './components/Onboarding';
 import { Login } from './components/Login';
 import { Register } from './components/Register';
 import { Budget } from './components/Budget';
 import { Income } from './components/Income';
+import { Expense } from './components/Expense';
+import { Profile } from './components/Profile';
 import { DashboardHome } from './components/DashboardHome';
 import { BudgetsScreen } from './components/BudgetsScreen';
 import { IncomesScreen } from './components/IncomesScreen';
+import { ExpensesScreen } from './components/ExpensesScreen';
 
-type AppView = 'onboarding' | 'login' | 'register' | 'dashboard-home' | 'budgets' | 'incomes' | 'create-budget' | 'create-income';
+type AppView = 'onboarding' | 'login' | 'register' | 'dashboard-home' | 'budgets' | 'incomes' | 'expenses' | 'create-budget' | 'create-income' | 'create-expense' | 'profile';
 
 function AppContent() {
   const { user, isLoading } = useAuth();
@@ -44,31 +48,52 @@ function AppContent() {
         setRefreshKey(prev => prev + 1);
         setCurrentView('budgets');
       }} />;
-    
+
     case 'create-income':
       return <Income onBack={() => {
         setRefreshKey(prev => prev + 1);
         setCurrentView('incomes');
       }} />;
-    
+
+    case 'create-expense':
+      return <Expense onBack={() => {
+        setRefreshKey(prev => prev + 1);
+        setCurrentView('expenses');
+      }} />;
+
+    case 'profile':
+      return <Profile onBack={() => setCurrentView('dashboard-home')} />;
+
     case 'budgets':
       return (
         <BudgetsScreen
           key={`budgets-${refreshKey}`}
           onNavigate={(page) => setCurrentView(page === 'home' ? 'dashboard-home' : page)}
           onCreateBudget={() => setCurrentView('create-budget')}
+          onProfileClick={() => setCurrentView('profile')}
         />
       );
-    
+
     case 'incomes':
       return (
         <IncomesScreen
           key={`incomes-${refreshKey}`}
           onNavigate={(page) => setCurrentView(page === 'home' ? 'dashboard-home' : page)}
           onCreateIncome={() => setCurrentView('create-income')}
+          onProfileClick={() => setCurrentView('profile')}
         />
       );
-    
+
+    case 'expenses':
+      return (
+        <ExpensesScreen
+          key={`expenses-${refreshKey}`}
+          onNavigate={(page) => setCurrentView(page === 'home' ? 'dashboard-home' : page)}
+          onCreateExpense={() => setCurrentView('create-expense')}
+          onProfileClick={() => setCurrentView('profile')}
+        />
+      );
+
     case 'dashboard-home':
     default:
       return (
@@ -76,6 +101,8 @@ function AppContent() {
           onNavigate={(page) => setCurrentView(page === 'home' ? 'dashboard-home' : page)}
           onCreateBudget={() => setCurrentView('create-budget')}
           onCreateIncome={() => setCurrentView('create-income')}
+          onCreateExpense={() => setCurrentView('create-expense')}
+          onProfileClick={() => setCurrentView('profile')}
         />
       );
   }
@@ -84,7 +111,9 @@ function AppContent() {
 export default function App() {
   return (
     <AuthProvider>
-      <AppContent />
+      <NotificationProvider>
+        <AppContent />
+      </NotificationProvider>
     </AuthProvider>
   );
 }

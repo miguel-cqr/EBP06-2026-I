@@ -62,8 +62,8 @@ export function Register({ onSwitchToLogin }: RegisterProps) {
   return (
     <div className="min-h-screen bg-[#F7F5F0] p-4 md:p-6 lg:p-8 flex items-center justify-center relative overflow-hidden">
       {/* Decorative blurred shapes */}
-      <div className="absolute top-0 right-0 w-72 h-72 md:w-96 md:h-96 bg-gradient-to-br from-blue-200/40 to-indigo-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
-      <div className="absolute bottom-0 left-0 w-64 h-64 md:w-80 md:h-80 bg-gradient-to-tr from-violet-200/30 to-blue-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4"></div>
+      
+      
 
       <div className="w-full max-w-md lg:max-w-lg relative z-10">
         <div className="mb-6 md:mb-8 text-center">

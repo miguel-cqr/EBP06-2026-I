@@ -1,14 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 interface User {
-  id: number | string;
+  id: string;
   email: string;
   name: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  token: string | null;
   login: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -19,80 +18,58 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('auth_user');
-    const storedToken = localStorage.getItem('auth_token');
     if (storedUser) {
       setUser(JSON.parse(storedUser));
-    }
-    if (storedToken) {
-      setToken(storedToken);
     }
     setIsLoading(false);
   }, []);
 
-    const register = async (name: string, email: string, password: string) => {
-    // Use nullish coalescing so an explicit empty VITE_API_URL becomes a valid
-    // value (we use '' to indicate relative paths, proxied by nginx)
-    const API_URL = import.meta.env.VITE_API_URL ?? '';
-    try {
-      const res = await fetch(`${API_URL}/api/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: email, password, fullName: name })
-      });
-      if (res.status === 409) {
-        const body = await res.json();
-        return { success: false, error: body?.error || 'Este correo ya está registrado' };
-      }
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        return { success: false, error: body?.error || 'Error en el registro' };
-      }
-      // Auto-login after successful registration
-      return await login(email, password);
-    } catch (err: any) {
-      return { success: false, error: err?.message || 'Error de red' };
+  const register = async (name: string, email: string, password: string) => {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+
+    if (users.find((u: User & { password: string }) => u.email === email)) {
+      return { success: false, error: 'Este correo ya está registrado' };
     }
+
+    const newUser = {
+      id: Math.random().toString(36).substr(2, 9),
+      name,
+      email,
+      password
+    };
+
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    return { success: true };
   };
 
-    const login = async (email: string, password: string) => {
-    const API_URL = import.meta.env.VITE_API_URL ?? '';
-    try {
-      const res = await fetch(`${API_URL}/api/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: email, password })
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        return { success: false, error: body?.error || 'Correo o contraseña incorrectos' };
-      }
-      const body = await res.json();
-      const token = body.token;
-      const userObj = { id: body.userId, email: body.username, name: body.fullName };
-      setUser(userObj);
-      setToken(token);
-      localStorage.setItem('auth_user', JSON.stringify(userObj));
-      localStorage.setItem('auth_token', token);
-      return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err?.message || 'Error de red' };
+  const login = async (email: string, password: string) => {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find((u: User & { password: string }) => u.email === email && u.password === password);
+
+    if (!user) {
+      return { success: false, error: 'Correo o contraseña incorrectos' };
     }
+
+    const userWithoutPassword = { id: user.id, email: user.email, name: user.name };
+    setUser(userWithoutPassword);
+    localStorage.setItem('auth_user', JSON.stringify(userWithoutPassword));
+
+    return { success: true };
   };
 
   const logout = () => {
     setUser(null);
-    setToken(null);
     localStorage.removeItem('auth_user');
-    localStorage.removeItem('auth_token');
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
