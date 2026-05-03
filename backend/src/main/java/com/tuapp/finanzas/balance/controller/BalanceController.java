@@ -1,3 +1,13 @@
+package com.tuapp.finanzas.balance.controller;
+
+import com.tuapp.finanzas.balance.dto.MonthlyBalanceDto;
+import com.tuapp.finanzas.balance.dto.YearlyBalanceDto;
+import com.tuapp.finanzas.balance.service.BalanceService;
+import com.tuapp.finanzas.user.entity.User;
+import com.tuapp.finanzas.user.service.UserLookup;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.*;
+
 @RestController
 @RequestMapping("/api/balance")
 public class BalanceController {

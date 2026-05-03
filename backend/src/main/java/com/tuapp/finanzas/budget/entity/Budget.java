@@ -1,7 +1,8 @@
 package com.tuapp.finanzas.budget.entity;
 
+import com.tuapp.finanzas.category.entity.Category;
+import com.tuapp.finanzas.user.entity.User;
 import jakarta.persistence.*;
-
 import java.math.BigDecimal;
 
 @Entity
@@ -17,13 +18,9 @@ public class Budget {
     @Column(name = "limit_amount")
     private BigDecimal limitAmount;
 
-    // Agregado moth & year
     private Integer month;
     private Integer year;
 
-
-
-    //Agregado User que antes no estaba
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
@@ -31,11 +28,10 @@ public class Budget {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-}
 
     public Budget() {}
 
-    public Budget(Long id, String name, java.math.BigDecimal limitAmount) {
+    public Budget(Long id, String name, BigDecimal limitAmount) {
         this.id = id;
         this.name = name;
         this.limitAmount = limitAmount;
@@ -57,11 +53,11 @@ public class Budget {
         this.name = name;
     }
 
-    public java.math.BigDecimal getLimitAmount() {
+    public BigDecimal getLimitAmount() {
         return limitAmount;
     }
 
-    public void setLimitAmount(java.math.BigDecimal limitAmount) {
+    public void setLimitAmount(BigDecimal limitAmount) {
         this.limitAmount = limitAmount;
     }
 
@@ -96,7 +92,4 @@ public class Budget {
     public void setMonth(Integer month) {
         this.month = month;
     }
-
-
-
 }

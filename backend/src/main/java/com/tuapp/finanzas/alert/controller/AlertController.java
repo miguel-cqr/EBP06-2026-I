@@ -1,3 +1,15 @@
+package com.tuapp.finanzas.alert.controller;
+
+import com.tuapp.finanzas.alert.entity.Alert;
+import com.tuapp.finanzas.alert.repository.AlertRepository;
+import com.tuapp.finanzas.user.entity.User;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/alerts")
 public class AlertController {

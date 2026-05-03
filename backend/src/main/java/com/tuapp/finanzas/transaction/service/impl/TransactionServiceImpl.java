@@ -8,22 +8,29 @@ import com.tuapp.finanzas.transaction.service.TransactionService;
 import com.tuapp.finanzas.category.entity.Category;
 import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.service.UserLookup;
+import com.tuapp.finanzas.alert.service.AlertService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final UserLookup userLookup;
+    private final AlertService alertService;
+    private final com.tuapp.finanzas.user.repository.UserRepository userRepository;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, UserLookup userLookup) {
+    public TransactionServiceImpl(TransactionRepository transactionRepository, UserLookup userLookup, AlertService alertService, com.tuapp.finanzas.user.repository.UserRepository userRepository) {
         this.transactionRepository = transactionRepository;
         this.userLookup = userLookup;
+        this.alertService = alertService;
+        this.userRepository = userRepository;
     }
+
     private Transaction buildTransaction(TransactionDto dto) {
         Transaction t = new Transaction();
         t.setAmount(dto.getAmount());
@@ -91,14 +98,15 @@ public class TransactionServiceImpl implements TransactionService {
             throw new RuntimeException("Usuario no autenticado");
         }
 
-        User user = userRepository.findByUsername(auth.getName())
+        com.tuapp.finanzas.user.entity.User user = userRepository.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Double income = transactionRepository.sumByTypeAndUser(TransactionType.INCOME, user.getId());
-        Double expense = transactionRepository.sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
+        BigDecimal income = transactionRepository.sumByTypeAndUser(TransactionType.INCOME, user.getId());
+        BigDecimal expense = transactionRepository.sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
 
-        return income - expense;
+        return income.subtract(expense).doubleValue();
     }
+
     @Override
     public List<TransactionDto> findAll() {
         return transactionRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
@@ -119,17 +127,5 @@ public class TransactionServiceImpl implements TransactionService {
         );
         dto.setDate(t.getDate());
         return dto;
-    }
-
-    private final AlertService alertService;
-
-    public TransactionServiceImpl(
-            TransactionRepository transactionRepository,
-            UserLookup userLookup,
-            AlertService alertService
-    ) {
-        this.transactionRepository = transactionRepository;
-        this.userLookup = userLookup;
-        this.alertService = alertService;
     }
 }
