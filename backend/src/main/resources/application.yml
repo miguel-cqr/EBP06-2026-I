@@ -10,8 +10,12 @@ spring:
       # Keep update for local dev, but in docker-compose we'll set ddl-auto to none and rely on Flyway
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     show-sql: ${SPRING_JPA_SHOW_SQL:true}
+    defer-datasource-initialization: true
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
+  sql:
+    init:
+      mode: embedded
 
 server:
   port: 8080
