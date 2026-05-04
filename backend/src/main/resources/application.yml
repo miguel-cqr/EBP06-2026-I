@@ -18,7 +18,7 @@ spring:
       mode: embedded
 
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 jwt:
   # For dev only. Override with env var JWT_SECRET in production.
