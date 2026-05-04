@@ -16,7 +16,7 @@ spring:
     enabled: ${FLYWAY_ENABLED:false}
   sql:
     init:
-      mode: embedded
+      mode: ${SPRING_SQL_INIT_MODE:embedded}
 
 server:
   port: ${PORT:8080}
