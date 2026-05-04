@@ -113,6 +113,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public List<TransactionDto> findByUserId(Long userId) {
+        return transactionRepository.findByUserIdOrderByDateDesc(userId).stream().map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
     public TransactionDto findById(Long id) {
         return transactionRepository.findById(id).map(this::toDto).orElse(null);
     }
@@ -126,6 +131,7 @@ public class TransactionServiceImpl implements TransactionService {
                 t.getUser() != null ? t.getUser().getId() : null
         );
         dto.setDate(t.getDate());
+        dto.setType(t.getType() != null ? t.getType().name() : null);
         return dto;
     }
 }

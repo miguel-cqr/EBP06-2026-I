@@ -60,4 +60,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     ORDER BY MONTH(t.date)
     """)
     List<Object[]> getYearlyBalance(Long userId, int year);
+
+    List<Transaction> findByUserIdOrderByDateDesc(Long userId);
 }

@@ -1,9 +1,12 @@
 package com.tuapp.finanzas.transaction.controller;
 
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
+import com.tuapp.finanzas.user.entity.User;
+import com.tuapp.finanzas.user.service.UserLookup;
 import jakarta.validation.Valid;
 import com.tuapp.finanzas.transaction.service.TransactionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,14 +16,19 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final UserLookup userLookup;
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService, UserLookup userLookup) {
         this.transactionService = transactionService;
+        this.userLookup = userLookup;
     }
 
     @GetMapping
     public ResponseEntity<List<TransactionDto>> list() {
-        return ResponseEntity.ok(transactionService.findAll());
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        User user = userLookup.findByUsername(auth.getName())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return ResponseEntity.ok(transactionService.findByUserId(user.getId()));
     }
 
     @GetMapping("/{id}")

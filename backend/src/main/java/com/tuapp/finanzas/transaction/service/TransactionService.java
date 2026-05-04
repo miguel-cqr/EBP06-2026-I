@@ -9,5 +9,6 @@ public interface TransactionService {
     TransactionDto createExpense(TransactionDto dto);
     Double getBalance();
     List<TransactionDto> findAll();
+    List<TransactionDto> findByUserId(Long userId);
     TransactionDto findById(Long id);
 }
