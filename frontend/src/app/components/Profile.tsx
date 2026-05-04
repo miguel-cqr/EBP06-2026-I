@@ -1,6 +1,7 @@
 import { ChevronRight, LogOut, X, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { userService } from '../api/userService';
 
 interface ProfileProps {
   onBack: () => void;
@@ -17,6 +18,7 @@ export function Profile({ onBack }: ProfileProps) {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const [passwordSuccess, setPasswordSuccess] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
 
   const maskEmail = (email: string) => {
     if (!email) return '';
@@ -45,7 +47,7 @@ export function Profile({ onBack }: ProfileProps) {
     }
 
     try {
-      // API Call to /api/users/password would go here
+      await userService.updatePassword(currentPassword, newPassword);
       setPasswordSuccess(true);
       setTimeout(() => {
         setCurrentPassword('');
@@ -62,11 +64,19 @@ export function Profile({ onBack }: ProfileProps) {
 
   const handleTerminateSessions = async () => {
     try {
-      // API Call to /api/users/sessions (DELETE) would go here
+      await userService.terminateSessions();
+      setSessions([]);
       setShowSessionsModal(false);
     } catch (e) {
       console.error('Error terminating sessions');
     }
+  };
+
+  const openSessionsModal = () => {
+    setShowSessionsModal(true);
+    userService.getSessions()
+      .then(res => setSessions(res.data))
+      .catch(console.error);
   };
 
   return (
@@ -148,7 +158,7 @@ export function Profile({ onBack }: ProfileProps) {
 
             {/* Sessions */}
             <button
-              onClick={() => setShowSessionsModal(true)}
+              onClick={openSessionsModal}
               className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
             >
               <span className="text-slate-900">Sesiones Activas</span>
@@ -258,18 +268,23 @@ export function Profile({ onBack }: ProfileProps) {
                   </button>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                    <div className="flex items-center gap-3">
-                      <span role="img" aria-label="device" className="w-5 h-5 text-slate-400 flex items-center justify-center">📱</span>
-                      <div>
-                        <p className="text-sm font-medium text-slate-900">Chrome / Windows</p>
-                        <p className="text-xs text-slate-500">Activa ahora</p>
-                      </div>
+                  {sessions.length === 0 ? (
+                    <div className="p-4 bg-slate-50 rounded-xl border border-slate-100 text-center">
+                      <p className="text-sm text-slate-500">No hay sesiones activas</p>
                     </div>
-                    <button onClick={handleTerminateSessions} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
+                  ) : (
+                    sessions.map((session: any) => (
+                      <div key={session.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-3">
+                          <span role="img" aria-label="device" className="w-5 h-5 text-slate-400 flex items-center justify-center">📱</span>
+                          <div>
+                            <p className="text-sm font-medium text-slate-900">{session.device || 'Desconocido'}</p>
+                            <p className="text-xs text-slate-500">{session.ipAddress || ''}</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
                 </div>
                 <div className="mt-6 flex gap-3">
                   <button onClick={handleTerminateSessions} className="flex-1 bg-[#0D0D0D] text-white py-3 rounded-xl hover:shadow-md transition-all">
