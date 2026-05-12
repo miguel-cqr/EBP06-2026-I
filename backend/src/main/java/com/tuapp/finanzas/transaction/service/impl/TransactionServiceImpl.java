@@ -1,3 +1,4 @@
+// transaction/service/impl/TransactionServiceImpl.java
 package com.tuapp.finanzas.transaction.service.impl;
 
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
@@ -20,20 +21,19 @@ public class TransactionServiceImpl implements TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserLookup userLookup;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, UserLookup userLookup) {
+    // ✅ Un solo constructor, sin AlertService
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+                                  UserLookup userLookup) {
         this.transactionRepository = transactionRepository;
         this.userLookup = userLookup;
     }
+
     private Transaction buildTransaction(TransactionDto dto) {
         Transaction t = new Transaction();
         t.setAmount(dto.getAmount());
-        // set date explicitly: JPA may include a null date in INSERT which prevents DB default from applying
-        if (dto.getDate() != null) {
-            t.setDate(dto.getDate());
-        } else {
-            t.setDate(java.time.OffsetDateTime.now());
-        }
+        t.setDate(dto.getDate() != null ? dto.getDate() : java.time.OffsetDateTime.now());
         t.setDescription(dto.getDescription());
+
         if (dto.getCategoryId() != null) {
             Category c = new Category();
             c.setId(dto.getCategoryId());
@@ -44,7 +44,6 @@ public class TransactionServiceImpl implements TransactionService {
             u.setId(dto.getUserId());
             t.setUser(u);
         } else {
-            // try to resolve current user from security context if available
             var auth = SecurityContextHolder.getContext().getAuthentication();
             if (auth != null && auth.getName() != null) {
                 userLookup.findByUsername(auth.getName()).ifPresent(t::setUser);
@@ -61,47 +60,35 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    // ✅ createExpense ya NO evalúa presupuesto — esa responsabilidad
+    //    fue movida al ExpenseFacade
     public TransactionDto createExpense(TransactionDto dto) {
         Transaction t = buildTransaction(dto);
         t.setType(TransactionType.EXPENSE);
-
-        Transaction saved = transactionRepository.save(t);
-
-        // nuevo: evaluar presupuesto
-        if (saved.getUser() != null && saved.getCategory() != null) {
-
-            var date = saved.getDate();
-
-            alertService.evaluateBudget(
-                    saved.getUser().getId(),
-                    saved.getCategory().getId(),
-                    date.getYear(),
-                    date.getMonthValue()
-            );
-        }
-
-        return toDto(saved);
+        return toDto(transactionRepository.save(t));
     }
 
     @Override
     public Double getBalance() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-
         if (auth == null || auth.getName() == null) {
             throw new RuntimeException("Usuario no autenticado");
         }
-
-        User user = userRepository.findByUsername(auth.getName())
+        User user = userLookup.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        Double income = transactionRepository.sumByTypeAndUser(TransactionType.INCOME, user.getId());
-        Double expense = transactionRepository.sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
+        Double income = transactionRepository
+                .sumByTypeAndUser(TransactionType.INCOME, user.getId());
+        Double expense = transactionRepository
+                .sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
 
-        return income - expense;
+        return (income != null ? income : 0.0) - (expense != null ? expense : 0.0);
     }
+
     @Override
     public List<TransactionDto> findAll() {
-        return transactionRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+        return transactionRepository.findAll()
+                .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
@@ -111,25 +98,11 @@ public class TransactionServiceImpl implements TransactionService {
 
     private TransactionDto toDto(Transaction t) {
         TransactionDto dto = new TransactionDto(
-                t.getId(),
-                t.getAmount(),
-                t.getDescription(),
+                t.getId(), t.getAmount(), t.getDescription(),
                 t.getCategory() != null ? t.getCategory().getId() : null,
                 t.getUser() != null ? t.getUser().getId() : null
         );
         dto.setDate(t.getDate());
         return dto;
-    }
-
-    private final AlertService alertService;
-
-    public TransactionServiceImpl(
-            TransactionRepository transactionRepository,
-            UserLookup userLookup,
-            AlertService alertService
-    ) {
-        this.transactionRepository = transactionRepository;
-        this.userLookup = userLookup;
-        this.alertService = alertService;
     }
 }

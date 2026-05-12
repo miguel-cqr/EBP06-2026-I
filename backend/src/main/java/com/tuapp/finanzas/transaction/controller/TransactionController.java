@@ -1,8 +1,10 @@
+// transaction/controller/TransactionController.java
 package com.tuapp.finanzas.transaction.controller;
 
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
-import jakarta.validation.Valid;
+import com.tuapp.finanzas.transaction.facade.ExpenseFacade;
 import com.tuapp.finanzas.transaction.service.TransactionService;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,9 +15,12 @@ import java.util.List;
 public class TransactionController {
 
     private final TransactionService transactionService;
+    private final ExpenseFacade expenseFacade; // ✅ inyectamos el facade
 
-    public TransactionController(TransactionService transactionService) {
+    public TransactionController(TransactionService transactionService,
+                                 ExpenseFacade expenseFacade) {
         this.transactionService = transactionService;
+        this.expenseFacade = expenseFacade;
     }
 
     @GetMapping
@@ -36,7 +41,8 @@ public class TransactionController {
 
     @PostMapping("/expense")
     public ResponseEntity<TransactionDto> createExpense(@RequestBody TransactionDto dto) {
-        return ResponseEntity.ok(transactionService.createExpense(dto));
+        // ✅ El controlador delega al facade — no sabe nada de alertas
+        return ResponseEntity.ok(expenseFacade.registerExpense(dto));
     }
 
     @GetMapping("/balance")
