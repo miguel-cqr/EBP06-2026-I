@@ -5,8 +5,10 @@ import com.tuapp.finanzas.transaction.dto.TransactionDto;
 import com.tuapp.finanzas.transaction.entity.Transaction.TransactionType;
 import com.tuapp.finanzas.transaction.service.TransactionService;
 import com.tuapp.finanzas.transaction.strategy.TransactionProcessor;
+import com.tuapp.finanzas.user.entity.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import com.tuapp.finanzas.user.service.UserLookup;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -18,11 +20,14 @@ public class TransactionController {
 
     private final TransactionService transactionService;
     private final TransactionProcessor transactionProcessor;
+    private final UserLookup userLookup;
 
     public TransactionController(TransactionService transactionService,
-                                 TransactionProcessor transactionProcessor) {
+                                 TransactionProcessor transactionProcessor,
+                                 UserLookup userLookup) {
         this.transactionService = transactionService;
         this.transactionProcessor = transactionProcessor;
+        this.userLookup = userLookup;
     }
 
     @GetMapping

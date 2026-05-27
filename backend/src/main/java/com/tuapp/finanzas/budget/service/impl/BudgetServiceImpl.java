@@ -5,7 +5,6 @@ import com.tuapp.finanzas.budget.entity.Budget;
 import com.tuapp.finanzas.budget.repository.BudgetRepository;
 import com.tuapp.finanzas.budget.service.BudgetService;
 import com.tuapp.finanzas.category.entity.Category;
-import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.service.UserLookup;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;

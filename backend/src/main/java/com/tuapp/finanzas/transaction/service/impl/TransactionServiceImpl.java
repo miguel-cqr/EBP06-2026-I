@@ -9,14 +9,12 @@ import com.tuapp.finanzas.transaction.service.TransactionService;
 import com.tuapp.finanzas.category.entity.Category;
 import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.service.UserLookup;
-import com.tuapp.finanzas.alert.service.AlertService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
