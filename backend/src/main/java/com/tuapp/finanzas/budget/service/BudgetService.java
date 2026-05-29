@@ -9,4 +9,6 @@ public interface BudgetService {
     List<BudgetDto> findAll();
     List<BudgetDto> findByUserId(Long userId);
     BudgetDto findById(Long id);
+    BudgetDto update(Long id, BudgetDto dto);
+    void delete(Long id);
 }

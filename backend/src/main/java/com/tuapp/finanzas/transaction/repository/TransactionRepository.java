@@ -21,8 +21,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     WHERE t.user.id = :userId
     AND t.category.id = :categoryId
     AND t.type = 'EXPENSE'
-    AND YEAR(t.date) = :year
-    AND MONTH(t.date) = :month
+    AND EXTRACT(YEAR FROM t.date) = :year
+    AND EXTRACT(MONTH FROM t.date) = :month
     """)
     BigDecimal sumExpensesByCategory(
             @Param("userId") Long userId,
