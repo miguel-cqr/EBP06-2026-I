@@ -1,6 +1,5 @@
 package com.tuapp.finanzas.auth.controller;
 
-import com.tuapp.finanzas.auth.dto.AuthResponse;
 import com.tuapp.finanzas.auth.dto.LoginRequest;
 import com.tuapp.finanzas.user.dto.CreateUserRequest;
 import com.tuapp.finanzas.user.dto.UserDto;

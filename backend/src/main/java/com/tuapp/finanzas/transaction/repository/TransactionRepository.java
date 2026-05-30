@@ -2,14 +2,15 @@ package com.tuapp.finanzas.transaction.repository;
 
 import com.tuapp.finanzas.transaction.entity.Transaction;
 import com.tuapp.finanzas.transaction.entity.Transaction.TransactionType;
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.util.List;
 
 @Repository
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
@@ -20,8 +21,8 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     WHERE t.user.id = :userId
     AND t.category.id = :categoryId
     AND t.type = 'EXPENSE'
-    AND YEAR(t.date) = :year
-    AND MONTH(t.date) = :month
+    AND EXTRACT(YEAR FROM t.date) = :year
+    AND EXTRACT(MONTH FROM t.date) = :month
     """)
     BigDecimal sumExpensesByCategory(
             @Param("userId") Long userId,
@@ -62,4 +63,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
     List<Object[]> getYearlyBalance(Long userId, int year);
 
     List<Transaction> findByUserIdOrderByDateDesc(Long userId);
+
+    List<Transaction> findByUserIdAndTypeAndDateBetweenOrderByDateDesc(
+        Long userId,
+        TransactionType type,
+        OffsetDateTime start,
+        OffsetDateTime end
+    );
 }

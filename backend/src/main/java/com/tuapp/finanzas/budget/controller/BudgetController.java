@@ -41,4 +41,18 @@ public class BudgetController {
     public ResponseEntity<BudgetDto> create(@Valid @RequestBody BudgetDto dto) {
         return ResponseEntity.ok(budgetService.create(dto));
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateBudget(
+            @PathVariable Long id,
+            @RequestBody BudgetDto dto
+    ) {
+        return ResponseEntity.ok(budgetService.update(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteBudget(@PathVariable Long id) {
+        budgetService.delete(id);
+        return ResponseEntity.ok("Presupuesto eliminado correctamente");
+    }
 }

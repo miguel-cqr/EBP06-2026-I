@@ -3,113 +3,166 @@ package com.tuapp.finanzas.transaction.service.impl;
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
 import com.tuapp.finanzas.transaction.entity.Transaction;
 import com.tuapp.finanzas.transaction.entity.Transaction.TransactionType;
+import com.tuapp.finanzas.transaction.factory.TransactionFactory;
 import com.tuapp.finanzas.transaction.repository.TransactionRepository;
 import com.tuapp.finanzas.transaction.service.TransactionService;
 import com.tuapp.finanzas.category.entity.Category;
 import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.service.UserLookup;
-import com.tuapp.finanzas.alert.service.AlertService;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.math.BigDecimal;
 
 @Service
 public class TransactionServiceImpl implements TransactionService {
 
     private final TransactionRepository transactionRepository;
     private final UserLookup userLookup;
-    private final AlertService alertService;
-    private final com.tuapp.finanzas.user.repository.UserRepository userRepository;
+    private final TransactionFactory transactionFactory;
 
-    public TransactionServiceImpl(TransactionRepository transactionRepository, UserLookup userLookup, AlertService alertService, com.tuapp.finanzas.user.repository.UserRepository userRepository) {
+    // ✅ Un solo constructor, sin AlertService
+    public TransactionServiceImpl(TransactionRepository transactionRepository,
+                                  UserLookup userLookup,
+                                  TransactionFactory transactionFactory) {
         this.transactionRepository = transactionRepository;
         this.userLookup = userLookup;
-        this.alertService = alertService;
-        this.userRepository = userRepository;
+        this.transactionFactory = transactionFactory;
     }
 
-    private Transaction buildTransaction(TransactionDto dto) {
-        Transaction t = new Transaction();
-        t.setAmount(dto.getAmount());
-        // set date explicitly: JPA may include a null date in INSERT which prevents DB default from applying
-        if (dto.getDate() != null) {
-            t.setDate(dto.getDate());
-        } else {
-            t.setDate(java.time.OffsetDateTime.now());
-        }
-        t.setDescription(dto.getDescription());
-        if (dto.getCategoryId() != null) {
-            Category c = new Category();
-            c.setId(dto.getCategoryId());
-            t.setCategory(c);
-        }
+    private User resolveUser(TransactionDto dto) {
+
         if (dto.getUserId() != null) {
+
             User u = new User();
             u.setId(dto.getUserId());
-            t.setUser(u);
-        } else {
-            // try to resolve current user from security context if available
-            var auth = SecurityContextHolder.getContext().getAuthentication();
-            if (auth != null && auth.getName() != null) {
-                userLookup.findByUsername(auth.getName()).ifPresent(t::setUser);
-            }
+
+            return u;
         }
-        return t;
+
+        var auth = SecurityContextHolder
+                .getContext()
+                .getAuthentication();
+
+        if (auth != null && auth.getName() != null) {
+
+            return userLookup
+                    .findByUsername(auth.getName())
+                    .orElse(null);
+        }
+
+        return null;
+    }
+
+    private User getCurrentUser() {
+
+    var auth = SecurityContextHolder.getContext().getAuthentication();
+
+    if (auth == null || auth.getName() == null) {
+        throw new RuntimeException("Usuario no autenticado");
+    }
+
+    return userLookup.findByUsername(auth.getName())
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
     }
 
     @Override
     public TransactionDto create(TransactionDto dto) {
-        Transaction t = buildTransaction(dto);
-        t.setType(TransactionType.INCOME);
+        User user = resolveUser(dto);
+
+        Transaction t = transactionFactory.create(
+                dto,
+                user,
+                TransactionType.INCOME
+        );
+
         return toDto(transactionRepository.save(t));
     }
 
     @Override
+    // ✅ createExpense ya NO evalúa presupuesto — esa responsabilidad
+    //    fue movida al ExpenseFacade
     public TransactionDto createExpense(TransactionDto dto) {
-        Transaction t = buildTransaction(dto);
-        t.setType(TransactionType.EXPENSE);
+        User user = resolveUser(dto);
 
-        Transaction saved = transactionRepository.save(t);
+        Transaction t = transactionFactory.create(
+                dto,
+                user,
+                TransactionType.EXPENSE
+        );
 
-        // nuevo: evaluar presupuesto
-        if (saved.getUser() != null && saved.getCategory() != null) {
-
-            var date = saved.getDate();
-
-            alertService.evaluateBudget(
-                    saved.getUser().getId(),
-                    saved.getCategory().getId(),
-                    date.getYear(),
-                    date.getMonthValue()
-            );
-        }
-
-        return toDto(saved);
+        return toDto(transactionRepository.save(t));
     }
 
     @Override
-    public Double getBalance() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
+    public TransactionDto update(Long id, TransactionDto dto) {
 
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+
+        User currentUser = getCurrentUser();
+
+        if (!transaction.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("No autorizado");
+        }
+
+        transaction.setAmount(dto.getAmount());
+        transaction.setDescription(dto.getDescription());
+
+        if (dto.getDate() != null) {
+            transaction.setDate(dto.getDate());
+        }
+
+        if (dto.getCategoryId() != null) {
+            Category category = new Category();
+            category.setId(dto.getCategoryId());
+            transaction.setCategory(category);
+        }
+
+        Transaction updated = transactionRepository.save(transaction);
+
+        return toDto(updated);
+    }
+
+    @Override
+    public void delete(Long id) {
+
+        Transaction transaction = transactionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transacción no encontrada"));
+
+        User currentUser = getCurrentUser();
+
+        if (!transaction.getUser().getId().equals(currentUser.getId())) {
+            throw new RuntimeException("No autorizado");
+        }
+
+        transactionRepository.delete(transaction);
+    }
+
+    @Override
+    public BigDecimal getBalance() {
+        var auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null) {
             throw new RuntimeException("Usuario no autenticado");
         }
-
-        com.tuapp.finanzas.user.entity.User user = userRepository.findByUsername(auth.getName())
+        User user = userLookup.findByUsername(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        BigDecimal income = transactionRepository.sumByTypeAndUser(TransactionType.INCOME, user.getId());
-        BigDecimal expense = transactionRepository.sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
+        BigDecimal income = transactionRepository
+                .sumByTypeAndUser(TransactionType.INCOME, user.getId());
+        BigDecimal expense = transactionRepository
+                .sumByTypeAndUser(TransactionType.EXPENSE, user.getId());
 
-        return income.subtract(expense).doubleValue();
+        return (income != null ? income : BigDecimal.ZERO)
+        .subtract(expense != null ? expense : BigDecimal.ZERO);
     }
 
     @Override
     public List<TransactionDto> findAll() {
-        return transactionRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+        return transactionRepository.findAll()
+                .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
@@ -124,9 +177,7 @@ public class TransactionServiceImpl implements TransactionService {
 
     private TransactionDto toDto(Transaction t) {
         TransactionDto dto = new TransactionDto(
-                t.getId(),
-                t.getAmount(),
-                t.getDescription(),
+                t.getId(), t.getAmount(), t.getDescription(),
                 t.getCategory() != null ? t.getCategory().getId() : null,
                 t.getUser() != null ? t.getUser().getId() : null
         );
