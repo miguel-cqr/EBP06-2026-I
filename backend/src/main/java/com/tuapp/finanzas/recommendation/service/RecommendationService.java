@@ -7,6 +7,7 @@ import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.service.UserLookup;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -25,6 +26,7 @@ public class RecommendationService {
         this.userLookup = userLookup;
     }
 
+    @Transactional(readOnly = true)
     public List<RecommendationDto> getRecommendations() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userLookup.findByUsername(auth.getName())
