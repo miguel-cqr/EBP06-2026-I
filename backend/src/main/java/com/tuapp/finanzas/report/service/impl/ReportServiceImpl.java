@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.List;
@@ -35,9 +36,15 @@ public class ReportServiceImpl implements ReportService {
     @Override
     public ReportResponseDto generateTransactionReport(
             String type,
-            int year,
-            int month
+            LocalDate startDate,
+            LocalDate endDate
     ) {
+
+        if (startDate.isAfter(endDate)) {
+            throw new IllegalArgumentException(
+                    "La fecha inicial no puede ser posterior a la fecha final"
+            );
+        }
 
         var auth = SecurityContextHolder
                 .getContext()
@@ -47,28 +54,59 @@ public class ReportServiceImpl implements ReportService {
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
-        OffsetDateTime startDate =
-                LocalDate.of(year, month, 1)
-                        .atStartOfDay()
-                        .atOffset(ZoneOffset.UTC);
 
-        OffsetDateTime endDate =
-                startDate.plusMonths(1).minusSeconds(1);
+        OffsetDateTime start = startDate.atStartOfDay().atOffset(ZoneOffset.UTC);
 
-        TransactionType transactionType =
-                TransactionType.valueOf(type.toUpperCase());
+        OffsetDateTime end = endDate.atTime(LocalTime.MAX).atOffset(ZoneOffset.UTC);
 
-        List<TransactionDto> transactions =
+        List<TransactionDto> transactions;
+
+        TransactionType transactionType = null;
+
+
+        if ("ALL".equalsIgnoreCase(type)) {
+        transactionType = null;
+        transactions =
                 transactionRepository
-                        .findByUserIdAndTypeAndDateBetweenOrderByDateDesc(
+                        .findByUserIdAndDateBetweenOrderByDateDesc(
                                 user.getId(),
-                                transactionType,
-                                startDate,
-                                endDate
+                                start,
+                                end
                         )
                         .stream()
                         .map(this::toDto)
                         .toList();
+
+
+        } else {
+        transactionType =
+                TransactionType.valueOf(type.toUpperCase());
+                
+        transactions =
+                transactionRepository
+                        .findByUserIdAndTypeAndDateBetweenOrderByDateDesc(
+                                user.getId(),
+                                transactionType,
+                                start,
+                                end
+                        )
+                        .stream()
+                        .map(this::toDto)
+                        .toList();
+
+        }
+
+        BigDecimal totalIncome = transactions.stream()
+        .filter(tx -> "INCOME".equalsIgnoreCase(tx.getType()))
+        .map(TransactionDto::getAmount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal totalExpense = transactions.stream()
+        .filter(tx -> "EXPENSE".equalsIgnoreCase(tx.getType()))
+        .map(TransactionDto::getAmount)
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal balance = totalIncome.subtract(totalExpense);
 
         BigDecimal total = transactions.stream()
                 .map(TransactionDto::getAmount)
@@ -78,10 +116,15 @@ public class ReportServiceImpl implements ReportService {
                 new ReportResponseDto();
 
         response.setType(type.toUpperCase());
-        response.setYear(year);
-        response.setMonth(month);
+        response.setStartDate(startDate);
+        response.setEndDate(endDate);
         response.setTotal(total);
         response.setTransactions(transactions);
+        response.setTotalIncome(totalIncome);
+        response.setTotalExpense(totalExpense);
+        response.setBalance(balance);
+        response.setFullName(user.getFullName());
+        response.setCurrency(user.getCurrency());
 
         if (transactions.isEmpty()) {
 
@@ -103,6 +146,7 @@ public class ReportServiceImpl implements ReportService {
 
         TransactionDto dto = new TransactionDto();
 
+        dto.setType(transaction.getType().name());
         dto.setId(transaction.getId());
         dto.setAmount(transaction.getAmount());
         dto.setDescription(transaction.getDescription());

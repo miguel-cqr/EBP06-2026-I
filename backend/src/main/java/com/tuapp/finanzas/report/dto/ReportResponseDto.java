@@ -3,15 +3,16 @@ package com.tuapp.finanzas.report.dto;
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 public class ReportResponseDto {
 
     private String type;
 
-    private int year;
-
-    private int month;
+    private LocalDate startDate;
+    
+    private LocalDate endDate;
 
     private BigDecimal total;
 
@@ -23,27 +24,39 @@ public class ReportResponseDto {
     
     private String currency;
 
+    private BigDecimal totalIncome;
+    
+    private BigDecimal totalExpense;
+    
+    private BigDecimal balance;
+
     public ReportResponseDto() {
     }
 
     public ReportResponseDto(
             String type,
-            int year,
-            int month,
+            LocalDate startDate,
+            LocalDate endDate,
             BigDecimal total,
             List<TransactionDto> transactions,
             String message,
             String fullName,
-            String currency
+            String currency,
+            BigDecimal totalIncome,
+            BigDecimal totalExpense,
+            BigDecimal balance
     ) {
         this.type = type;
-        this.year = year;
-        this.month = month;
+        this.startDate = startDate;
+        this.endDate = endDate;
         this.total = total;
         this.transactions = transactions;
         this.message = message;
         this.fullName = fullName;
         this.currency = currency;
+        this.totalIncome = totalIncome;
+        this.totalExpense = totalExpense;
+        this.balance = balance;
     }
 
     public String getType() {
@@ -54,20 +67,20 @@ public class ReportResponseDto {
         this.type = type;
     }
 
-    public int getYear() {
-        return year;
+    public LocalDate getStartDate() {
+        return startDate;
     }
 
-    public void setYear(int year) {
-        this.year = year;
+    public void setStartDate(LocalDate startDate) {
+        this.startDate = startDate;
     }
 
-    public int getMonth() {
-        return month;
+    public LocalDate getEndDate() {
+        return endDate;
     }
 
-    public void setMonth(int month) {
-        this.month = month;
+    public void setEndDate(LocalDate endDate) {
+        this.endDate = endDate;
     }
 
     public BigDecimal getTotal() {
@@ -110,5 +123,28 @@ public class ReportResponseDto {
         this.currency = currency;
     }
 
+    public BigDecimal getTotalIncome() {
+        return totalIncome;
+    }
+
+    public void setTotalIncome(BigDecimal totalIncome) {
+        this.totalIncome = totalIncome;
+    }
+
+    public BigDecimal getTotalExpense() {
+        return totalExpense;
+    }
+
+    public void setTotalExpense(BigDecimal totalExpense) {
+        this.totalExpense = totalExpense;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
     
 }
