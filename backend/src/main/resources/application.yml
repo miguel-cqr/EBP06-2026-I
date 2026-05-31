@@ -17,7 +17,18 @@ spring:
   sql:
     init:
       mode: ${SPRING_SQL_INIT_MODE:embedded}
-      continue-on-error: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
 
 server:
   port: ${PORT:8080}
@@ -26,3 +37,10 @@ jwt:
   # For dev only. Override with env var JWT_SECRET in production.
   secret: ${JWT_SECRET:dev-very-secret-key-change-me-please-dev-very-secret-key}
   expiration-ms: 3600000 # 1 hour
+
+app:
+  mail:
+    from: ${MAIL_USERNAME:}
+  password-reset:
+    frontend-url: ${FRONTEND_URL:http://localhost:5173}
+    token-expiry-minutes: 30

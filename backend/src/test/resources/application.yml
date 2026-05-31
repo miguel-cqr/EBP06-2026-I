@@ -1,0 +1,56 @@
+# Ubicación: src/test/resources/application.yml
+#
+# Este archivo es cargado automáticamente por Spring Boot en lugar del
+# src/main/resources/application.yml durante la ejecución de tests.
+# No requiere ninguna anotación en las clases de test existentes.
+#
+# Solo sobreescribe las dos propiedades que causan el fallo:
+#   1. spring.sql.init.mode  -> never   (evita ejecutar data.sql contra H2)
+#   2. spring.flyway.enabled -> false   (evita migraciones en tests)
+#
+# Todo lo demás replica el application.yml principal para que el contexto
+# de Spring arranque correctamente con H2.
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+    database-platform: org.hibernate.dialect.H2Dialect
+    defer-datasource-initialization: true
+  flyway:
+    enabled: false
+  sql:
+    init:
+      mode: never
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username:
+    password:
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+server:
+  port: 8080
+
+jwt:
+  secret: test-secret-key-for-tests-only-not-used-in-production
+  expiration-ms: 3600000
+
+app:
+  mail:
+    from:
+  password-reset:
+    frontend-url: http://localhost:5173
+    token-expiry-minutes: 30
