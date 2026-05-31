@@ -7,6 +7,8 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { transactionService } from '../api/transactionService';
 import { dbIdToCategory } from '../api/categories';
+import { recommendationService } from '../api/recommendationService';
+import { Lightbulb } from 'lucide-react';
 
 const categoryIcons: { [key: string]: any } = {
   // Expense categories
@@ -45,6 +47,11 @@ interface DashboardHomeProps {
   onProfileClick: () => void;
 }
 
+interface Recommendation {
+  category: string;
+  message: string;
+}
+
 export function DashboardHome({ onNavigate, onCreateBudget, onCreateIncome, onCreateExpense, onProfileClick }: DashboardHomeProps) {
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'monthly' | 'yearly'>('monthly');
@@ -52,37 +59,40 @@ export function DashboardHome({ onNavigate, onCreateBudget, onCreateIncome, onCr
   const [totalExpenses, setTotalExpenses] = useState(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [transactionCount, setTransactionCount] = useState(0);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
 
   useEffect(() => {
     if (user) {
       transactionService.getTransactions()
-        .then(res => {
-          const currentMonth = new Date().getMonth();
-          const currentYear = new Date().getFullYear();
+          .then(res => {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
 
-          const allTxs: Transaction[] = res.data;
-          const filtered = allTxs.filter((tx: Transaction) => {
-            const txDate = new Date(tx.date);
-            if (viewMode === 'monthly') {
-              return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
-            } else {
-              return txDate.getFullYear() === currentYear;
-            }
-          });
+            const allTxs: Transaction[] = res.data;
+            const filtered = allTxs.filter((tx: Transaction) => {
+              const txDate = new Date(tx.date);
+              if (viewMode === 'monthly') {
+                return txDate.getMonth() === currentMonth && txDate.getFullYear() === currentYear;
+              } else {
+                return txDate.getFullYear() === currentYear;
+              }
+            });
 
-          const incomeTotal = filtered
-            .filter(tx => tx.type === 'INCOME')
-            .reduce((sum, tx) => sum + tx.amount, 0);
-          const expenseTotal = filtered
-            .filter(tx => tx.type === 'EXPENSE')
-            .reduce((sum, tx) => sum + tx.amount, 0);
+            const incomeTotal = filtered.filter(tx => tx.type === 'INCOME').reduce((sum, tx) => sum + tx.amount, 0);
+            const expenseTotal = filtered.filter(tx => tx.type === 'EXPENSE').reduce((sum, tx) => sum + tx.amount, 0);
 
-          setTotalIncome(incomeTotal);
-          setTotalExpenses(expenseTotal);
-          setTransactionCount(filtered.length);
-          setTransactions(filtered.slice(0, 15));
-        })
-        .catch(console.error);
+            setTotalIncome(incomeTotal);
+            setTotalExpenses(expenseTotal);
+            setTransactionCount(filtered.length);
+            setTransactions(filtered.slice(0, 15));
+          })
+          .catch(console.error);
+
+      if (viewMode === 'monthly') {
+        recommendationService.getRecommendations()
+            .then(res => setRecommendations(res.data))
+            .catch(console.error);
+      }
     }
   }, [user, viewMode]);
 
@@ -175,6 +185,7 @@ export function DashboardHome({ onNavigate, onCreateBudget, onCreateIncome, onCr
               <p className="text-xs text-slate-500">Total del {viewMode === 'monthly' ? 'mes' : 'año'} actual</p>
             </div>
 
+
             {/* Savings */}
             <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0F0] p-5 md:p-6">
               <div className="flex items-center gap-3 mb-4">
@@ -189,6 +200,33 @@ export function DashboardHome({ onNavigate, onCreateBudget, onCreateIncome, onCr
               <p className="text-xs text-slate-500">Ahorro neto del {viewMode === 'monthly' ? 'mes' : 'año'} actual</p>
             </div>
           </div>
+
+          {viewMode === 'monthly' && recommendations.length > 0 && (
+              <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl shadow-sm border border-indigo-100 p-5 md:p-6 mb-6">
+                <h3 className="text-[#3D2C8D] mb-4 text-[20px] flex items-center gap-2">
+                  <Lightbulb className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+                  Consejos financieros del mes
+                </h3>
+
+                <div className="space-y-4">
+                  {recommendations.map((rec, index) => (
+                      <div key={index} className="bg-white border border-indigo-50 p-4 rounded-xl flex gap-4 items-start shadow-sm">
+                        <div className="mt-1">
+                          <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-600">
+                            <Lightbulb className="w-4 h-4" />
+                          </div>
+                        </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium text-indigo-900 mb-1">Basado en tu categoría: {rec.category}</h4>
+                          <p className="text-slate-600 text-sm md:text-base leading-relaxed">
+                            {rec.message}
+                          </p>
+                        </div>
+                      </div>
+                  ))}
+                </div>
+              </div>
+          )}
 
           {/* Recent Transactions */}
           <div className="bg-white rounded-2xl shadow-sm border border-[#D8D0F0] p-5 md:p-6">
