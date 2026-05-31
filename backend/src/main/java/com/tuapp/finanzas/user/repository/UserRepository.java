@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, UserLookup {
     // findByUsername is declared in UserLookup; JpaRepository provides implementation
+    Optional<User> findByEmail(String email);
 }
