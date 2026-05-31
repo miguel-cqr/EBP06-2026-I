@@ -12,4 +12,8 @@ export const userService = {
   terminateSessions() {
     return api.delete('/users/sessions');
   },
+
+  updateProfile(data: { fullName: string; email: string; currency?: string }) {
+    return api.put('/users/me', data);
+  }
 };

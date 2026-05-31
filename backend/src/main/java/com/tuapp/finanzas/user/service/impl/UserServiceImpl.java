@@ -1,6 +1,7 @@
 package com.tuapp.finanzas.user.service.impl;
 
 import com.tuapp.finanzas.user.dto.CreateUserRequest;
+import com.tuapp.finanzas.user.dto.UpdateProfileRequest;
 import com.tuapp.finanzas.user.dto.UserDto;
 import com.tuapp.finanzas.user.dto.UserSessionDto;
 import com.tuapp.finanzas.user.entity.User;
@@ -114,6 +115,21 @@ public class UserServiceImpl implements UserService {
                 sessionRepository.delete(s);
             }
         }
+    }
+
+    @Override
+    public UserDto updateProfile(String username, UpdateProfileRequest req) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+
+        user.setFullName(req.getFullName());
+        user.setEmail(req.getEmail());
+        if (req.getCurrency() != null) {
+            user.setCurrency(req.getCurrency());
+        }
+
+        User saved = userRepository.save(user);
+        return toDto(saved);
     }
 
     private UserDto toDto(User u) {
