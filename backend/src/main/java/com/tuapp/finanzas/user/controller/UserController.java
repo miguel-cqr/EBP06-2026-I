@@ -1,10 +1,13 @@
 package com.tuapp.finanzas.user.controller;
 
 import com.tuapp.finanzas.user.dto.CreateUserRequest;
+import com.tuapp.finanzas.user.dto.UpdateProfileRequest;
 import com.tuapp.finanzas.user.dto.UserDto;
 import com.tuapp.finanzas.user.dto.UserSessionDto;
+import com.tuapp.finanzas.user.service.RateLimitingService;
 import com.tuapp.finanzas.user.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -17,9 +20,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+    private final RateLimitingService rateLimitingService;
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, RateLimitingService rateLimitingService) {
         this.userService = userService;
+        this.rateLimitingService = rateLimitingService;
     }
 
     @GetMapping("/me")
@@ -64,6 +69,19 @@ public class UserController {
     public ResponseEntity<UserDto> create(@Valid @RequestBody CreateUserRequest req) {
         UserDto created = userService.create(req);
         return ResponseEntity.ok(created);
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<?> updateProfile(@Valid @RequestBody UpdateProfileRequest req) {
+        String currentUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        if (!rateLimitingService.isAllowed(currentUsername)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body(java.util.Map.of("error", "Demasiados intentos. Por favor, espera un minuto para volver a intentarlo."));
+        }
+
+        UserDto updatedUser = userService.updateProfile(currentUsername, req);
+        return ResponseEntity.ok(updatedUser);
     }
 
     public static class PasswordUpdateRequest {

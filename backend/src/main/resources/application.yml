@@ -17,6 +17,7 @@ spring:
   sql:
     init:
       mode: ${SPRING_SQL_INIT_MODE:embedded}
+      continue-on-error: true
 
 server:
   port: ${PORT:8080}

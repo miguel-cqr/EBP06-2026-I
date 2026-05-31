@@ -1,6 +1,7 @@
 package com.tuapp.finanzas.user.service;
 
 import com.tuapp.finanzas.user.dto.CreateUserRequest;
+import com.tuapp.finanzas.user.dto.UpdateProfileRequest;
 import com.tuapp.finanzas.user.dto.UserDto;
 import com.tuapp.finanzas.user.dto.UserSessionDto;
 
@@ -14,4 +15,5 @@ public interface UserService {
     void updatePassword(String username, String currentPassword, String newPassword);
     List<UserSessionDto> getActiveSessions(String username);
     void terminateOtherSessions(String username, String currentToken);
+    UserDto updateProfile(String username, UpdateProfileRequest req);
 }

@@ -16,6 +16,7 @@ interface AuthContextType {
   register: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
   isLoading: boolean;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +24,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
@@ -93,8 +95,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('auth_user');
   };
 
+  const refreshUser = async () => {
+    try {
+      const profileRes = await authService.getProfile();
+      const data = profileRes.data;
+      const userData: User = {
+        id: data.id,
+        username: data.username,
+        email: data.email,
+        name: data.fullName,
+        currency: data.currency,
+        role: data.role,
+      };
+      setUser(userData);
+      localStorage.setItem('auth_user', JSON.stringify(userData));
+    } catch (e) {
+      console.error("Error refreshing profile", e);
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, isLoading, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
