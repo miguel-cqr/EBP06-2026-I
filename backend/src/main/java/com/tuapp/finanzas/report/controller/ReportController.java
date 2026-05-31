@@ -2,6 +2,9 @@ package com.tuapp.finanzas.report.controller;
 
 import com.tuapp.finanzas.report.service.ReportService;
 import com.tuapp.finanzas.report.service.PdfReportService;
+
+import java.time.LocalDate;
+
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 
@@ -23,16 +26,16 @@ public class ReportController {
 
     @GetMapping("/transactions")
     public ResponseEntity<?> generateReport(
-            @RequestParam String type,
-            @RequestParam int year,
-            @RequestParam int month
+                @RequestParam String type,
+                @RequestParam LocalDate startDate,
+                @RequestParam LocalDate endDate
     ) {
 
         return ResponseEntity.ok(
                 reportService.generateTransactionReport(
                         type,
-                        year,
-                        month
+                        startDate,
+                        endDate
                 )
         );
     }
@@ -40,15 +43,15 @@ public class ReportController {
     @GetMapping("/transactions/pdf")
     public ResponseEntity<byte[]> generatePdf(
             @RequestParam String type,
-            @RequestParam int year,
-            @RequestParam int month
+            @RequestParam LocalDate startDate,
+            @RequestParam LocalDate endDate
     ) {
 
         byte[] pdf =
                 pdfReportService.generatePdfReport(
                         type,
-                        year,
-                        month
+                        startDate,
+                        endDate
                 );
 
         return ResponseEntity.ok()
