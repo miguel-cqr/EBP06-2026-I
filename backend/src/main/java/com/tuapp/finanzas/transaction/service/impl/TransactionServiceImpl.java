@@ -3,7 +3,7 @@ package com.tuapp.finanzas.transaction.service.impl;
 import com.tuapp.finanzas.transaction.dto.TransactionDto;
 import com.tuapp.finanzas.transaction.entity.Transaction;
 import com.tuapp.finanzas.transaction.entity.Transaction.TransactionType;
-import com.tuapp.finanzas.transaction.event.TransactionSavedEvent;
+import com.tuapp.finanzas.achievement.transaction.event.TransactionSavedEvent;
 import com.tuapp.finanzas.transaction.factory.TransactionFactory;
 import com.tuapp.finanzas.transaction.repository.TransactionRepository;
 import com.tuapp.finanzas.transaction.service.TransactionService;
