@@ -22,11 +22,13 @@ public class BalanceServiceImpl implements BalanceService {
     @Override
     public MonthlyBalanceDto getMonthlyBalance(Long userId, int year, int month) {
 
-        Object[] result = transactionRepository
-                .getMonthlyBalance(userId, year, month);
+        Object[] result =
+                transactionRepository.getMonthlyBalance(userId,year,month);
 
-        BigDecimal income = (BigDecimal) result[0];
-        BigDecimal expense = (BigDecimal) result[1];
+        Object[] row = (Object[]) result[0];
+
+        BigDecimal income = (BigDecimal) row[0];
+        BigDecimal expense = (BigDecimal) row[1];
 
         return new MonthlyBalanceDto(income, expense);
     }
