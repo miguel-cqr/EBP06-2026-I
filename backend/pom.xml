@@ -13,7 +13,7 @@
 
     <groupId>com.tuapp</groupId>
     <artifactId>finanzas-personales-backend</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>1.0.0-SNAPSHOT</version>
     <name>finanzas-personales-backend</name>
     <description>Backend for Finanzas Personales (project skeleton)</description>
 
@@ -104,7 +104,7 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
-        
+
     </dependencies>
 
     <build>
