@@ -7,7 +7,7 @@ import com.tuapp.finanzas.achievement.repository.AchievementRepository;
 import com.tuapp.finanzas.achievement.repository.UserAchievementRepository;
 import com.tuapp.finanzas.balance.dto.MonthlyBalanceDto;
 import com.tuapp.finanzas.balance.service.BalanceService;
-import com.tuapp.finanzas.transaction.event.TransactionSavedEvent;
+import com.tuapp.finanzas.achievement.transaction.event.TransactionSavedEvent;
 import com.tuapp.finanzas.user.entity.User;
 import com.tuapp.finanzas.user.repository.UserRepository;
 import com.tuapp.finanzas.user.service.UserLookup;
@@ -24,7 +24,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service

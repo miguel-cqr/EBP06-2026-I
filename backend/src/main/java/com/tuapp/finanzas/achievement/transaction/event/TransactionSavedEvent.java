@@ -1,4 +1,4 @@
-package com.tuapp.finanzas.transaction.event;
+package com.tuapp.finanzas.achievement.transaction.event;
 
 /**
  * Evento publicado cada vez que se persiste una transacción

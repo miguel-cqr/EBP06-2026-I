@@ -71,4 +71,11 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         OffsetDateTime start,
         OffsetDateTime end
     );
+
+
+    List<Transaction> findByUserIdAndDateBetweenOrderByDateDesc(
+        Long userId,
+        OffsetDateTime start,
+        OffsetDateTime end
+    );
 }
