@@ -1,4 +1,3 @@
-// transaction/facade/ExpenseFacadeImpl.java
 package com.tuapp.finanzas.transaction.facade;
 
 import com.tuapp.finanzas.alert.service.AlertService;
@@ -23,14 +22,17 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
     private final TransactionService transactionService;
     private final AlertService alertService;
 
-    public ExpenseFacadeImpl(TransactionService transactionService,
-                             AlertService alertService) {
+    public ExpenseFacadeImpl(
+            TransactionService transactionService,
+            AlertService alertService
+    ) {
         this.transactionService = transactionService;
         this.alertService = alertService;
     }
 
     @Override
     public TransactionDto registerExpense(TransactionDto dto) {
+
         // Paso 1: persistir el gasto
         TransactionDto saved = transactionService.createExpense(dto);
 
@@ -44,7 +46,8 @@ public class ExpenseFacadeImpl implements ExpenseFacade {
             );
         }
 
-        // El controlador recibe el DTO listo, sin saber nada de alertas
+        // El controlador recibe el DTO listo,
+        // sin saber nada de alertas ni logros.
         return saved;
     }
 }

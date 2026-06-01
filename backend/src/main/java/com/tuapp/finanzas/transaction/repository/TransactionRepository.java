@@ -44,21 +44,22 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
         COALESCE(SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount END), 0)
     FROM Transaction t
     WHERE t.user.id = :userId
-    AND YEAR(t.date) = :year
-    AND MONTH(t.date) = :month
+    AND EXTRACT(YEAR FROM t.date) = :year
+    AND EXTRACT(MONTH FROM t.date) = :month
     """)
     Object[] getMonthlyBalance(Long userId, int year, int month);
 
+    // EL CAMBIO PRINCIPAL ESTÁ EN ESTA CONSULTA:
     @Query("""
     SELECT 
-        MONTH(t.date),
+        EXTRACT(MONTH FROM t.date),
         SUM(CASE WHEN t.type = 'INCOME' THEN t.amount ELSE 0 END),
         SUM(CASE WHEN t.type = 'EXPENSE' THEN t.amount ELSE 0 END)
     FROM Transaction t
     WHERE t.user.id = :userId
-    AND YEAR(t.date) = :year
-    GROUP BY MONTH(t.date)
-    ORDER BY MONTH(t.date)
+    AND EXTRACT(YEAR FROM t.date) = :year
+    GROUP BY EXTRACT(MONTH FROM t.date)
+    ORDER BY EXTRACT(MONTH FROM t.date)
     """)
     List<Object[]> getYearlyBalance(Long userId, int year);
 
